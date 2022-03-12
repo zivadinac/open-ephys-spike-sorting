@@ -1,0 +1,1406 @@
+{
+    "specification": "probeinterface",
+    "version": "0.2.7",
+    "probes": [
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "0"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2700,
+                    -4300
+                ],
+                [
+                    2680,
+                    -4280
+                ],
+                [
+                    2720,
+                    -4280
+                ],
+                [
+                    2700,
+                    -4260
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                52,
+                53,
+                54,
+                55
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "1"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2500,
+                    -4650
+                ],
+                [
+                    2480,
+                    -4630
+                ],
+                [
+                    2520,
+                    -4630
+                ],
+                [
+                    2500,
+                    -4610
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                56,
+                57,
+                58,
+                59
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "2"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2300,
+                    -4300
+                ],
+                [
+                    2280,
+                    -4280
+                ],
+                [
+                    2320,
+                    -4280
+                ],
+                [
+                    2300,
+                    -4260
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                60,
+                61,
+                62,
+                63
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "3"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2100,
+                    -3950
+                ],
+                [
+                    2080,
+                    -3930
+                ],
+                [
+                    2120,
+                    -3930
+                ],
+                [
+                    2100,
+                    -3910
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "4"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    1900,
+                    -3600
+                ],
+                [
+                    1880,
+                    -3580
+                ],
+                [
+                    1920,
+                    -3580
+                ],
+                [
+                    1900,
+                    -3560
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                4,
+                5,
+                6,
+                7
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "5"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2500,
+                    -3950
+                ],
+                [
+                    2480,
+                    -3930
+                ],
+                [
+                    2520,
+                    -3930
+                ],
+                [
+                    2500,
+                    -3910
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                8,
+                9,
+                10,
+                11
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "6"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2300,
+                    -3600
+                ],
+                [
+                    2280,
+                    -3580
+                ],
+                [
+                    2320,
+                    -3580
+                ],
+                [
+                    2300,
+                    -3560
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                12,
+                13,
+                14,
+                15
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "7"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    2900,
+                    -3950
+                ],
+                [
+                    2880,
+                    -3930
+                ],
+                [
+                    2920,
+                    -3930
+                ],
+                [
+                    2900,
+                    -3910
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                20,
+                21,
+                22,
+                23
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "8"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3100,
+                    -3600
+                ],
+                [
+                    3080,
+                    -3580
+                ],
+                [
+                    3120,
+                    -3580
+                ],
+                [
+                    3100,
+                    -3560
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                24,
+                25,
+                26,
+                27
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "9"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3300,
+                    -3950
+                ],
+                [
+                    3280,
+                    -3930
+                ],
+                [
+                    3320,
+                    -3930
+                ],
+                [
+                    3300,
+                    -3910
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                28,
+                29,
+                30,
+                31
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "10"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3500,
+                    -4300
+                ],
+                [
+                    3480,
+                    -4280
+                ],
+                [
+                    3520,
+                    -4280
+                ],
+                [
+                    3500,
+                    -4260
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                32,
+                33,
+                34,
+                35
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "11"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3700,
+                    -4650
+                ],
+                [
+                    3680,
+                    -4630
+                ],
+                [
+                    3720,
+                    -4630
+                ],
+                [
+                    3700,
+                    -4610
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                36,
+                37,
+                38,
+                39
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "12"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3100,
+                    -4300
+                ],
+                [
+                    3080,
+                    -4280
+                ],
+                [
+                    3120,
+                    -4280
+                ],
+                [
+                    3100,
+                    -4260
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                40,
+                41,
+                42,
+                43
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "ndim": 2,
+            "si_units": "um",
+            "annotations": {
+                "name": "13"
+            },
+            "contact_annotations": {},
+            "contact_positions": [
+                [
+                    3300,
+                    -4650
+                ],
+                [
+                    3280,
+                    -4630
+                ],
+                [
+                    3320,
+                    -4630
+                ],
+                [
+                    3300,
+                    -4610
+                ]
+            ],
+            "contact_plane_axes": [
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ],
+                [
+                    [
+                        1.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        1.0
+                    ]
+                ]
+            ],
+            "contact_shapes": [
+                "circle",
+                "circle",
+                "circle",
+                "circle"
+            ],
+            "contact_shape_params": [
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                },
+                {
+                    "radius": 12
+                }
+            ],
+            "device_channel_indices": [
+                44,
+                45,
+                46,
+                47
+            ],
+            "shank_ids": [
+                "",
+                "",
+                "",
+                ""
+            ]
+        }
+    ]
+}
