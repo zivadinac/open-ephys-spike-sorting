@@ -186,10 +186,11 @@ def __read_layout_txt(path):
             num_tetrodes = int(lines[0].strip())
         except ValueError:  # make it more informative
             raise ValueError("Invalid content: number of tetrodes (the first line) must be an integer.")
-        if len(lines) != num_tetrodes + 1 or len(lines) != num_tetrodes * 2 + 1:
-            raise ValueError(f"Invalid content:\
-                             '.txt' file with {num_tetrodes} tetrodes\
-                              must have {num_tetrodes + 1} or {2 * num_tetrodes + 1} lines.")
+        if len(lines) != num_tetrodes + 1 and len(lines) != (num_tetrodes * 2 + 1):
+            raise ValueError(f"Invalid content: \
+given file has {len(lines)} lines, but a \
+'.txt' file with {num_tetrodes} tetrodes \
+must have {num_tetrodes + 1} or {2 * num_tetrodes + 1} lines.")
 
         tetrodes = []
         channels = []
@@ -197,7 +198,7 @@ def __read_layout_txt(path):
             lc = list(map(int, line.strip().split()))
             if len(lc) != 4:
                 raise ValueError(f"Invalid content in '.txt' file:\
-                                 each tetrode must have 4 channels.")
+each tetrode must have 4 channels.")
             channels.append(lc)
 
         if len(lines) == num_tetrodes * 2 + 1:
@@ -208,16 +209,16 @@ def __read_layout_txt(path):
                 lc = np.fromiter(lc, float)
                 if len(lc) != 8:
                     raise ValueError(f"Invalid content in '.txt' file:\
-                                     each tetrode must have 0 or 8 contact coordinates.")
+each tetrode must have 0 or 8 contact coordinates.")
                 lc = lc.reshape(4,2)
                 contacts.append(lc)
             
             for tn in range(num_tetrodes):
                 tetrodes.append(make_tetrode(tn, channels[tn], contacts=contacts[tn]))
         else:
+            # contacts are not specified in the file
+            # use default
             for tn in range(num_tetrodes):
-                # contacts are not specified in the file
-                # use default
                 tetrodes.append(make_tetrode(tn, channels[tn]))
 
         layout = ProbeGroup()
@@ -227,12 +228,12 @@ def __read_layout_txt(path):
 
 def read_layout(path):
     if path.endswith(".prb"):
-        return read_prb(path, layout)
+        return read_prb(path)
 
     if path.endswith(".json"):
-        return read_probeinterface(path, layout)
+        return read_probeinterface(path)
 
     if path.endswith(".txt"):
-        return __read_layout_txt(path, layout)
+        return __read_layout_txt(path)
 
     raise ValueError("Invalid path: supported extensions are '.prb', '.json' and '.txt'.")
