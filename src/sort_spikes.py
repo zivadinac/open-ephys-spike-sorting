@@ -14,7 +14,7 @@ from spikeinterface.core import load_extractor
 from spikeinterface.toolkit.preprocessing import bandpass_filter
 from joblib import Parallel, delayed
 import src.implants as implants
-from src.utils import convert_to_phy
+from src.formats import Phy, CluRes, SUPPORTED_FORMATS
 
 
 def __write_params(args):
@@ -45,24 +45,31 @@ def __write_segment_shifts(ss, path):
         f.write(ss_str)
 
 
-def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, bp_min=300, bp_max=6000):
+def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, fmt, bp_min=300, bp_max=6000):
     def __run(tn, tr, dt, op):
-        print(f"Sorting tetrode {tn}.")
-        tet_op = join(op, f"tet{tn}")
+        tet_fn = f"tet_{tn:02}"
+        print(f"Sorting {tet_fn}.")
+        tet_op = join(op, tet_fn)
         res = ss.run_sorter("mountainsort4", tr,\
                       tet_op,\
                       with_output=True, remove_existing_folder=True,\
                       **{"detect_threshold": dt, "freq_min": bp_min, "freq_max": bp_max})
         tv_tr = tr if tr.get_annotation("is_filtered") else\
                 bandpass_filter(tr, bp_min, bp_max)
-        convert_to_phy(tv_tr, res, tet_op)
+        match fmt:
+            case "phy":
+                Phy(tv_tr, res).save(tet_op)
+            case "clu-res":
+                CluRes(sorting=res).save(join(tet_op, tet_fn))
+            case _:
+                raise ValueError(f"Invalid format {fmt}. Supported formats are {SUPPORTED_FORMATS}")
         return tn, res
 
     return dict(Parallel(n_jobs=n_jobs, backend="threading")(delayed(__run)(tn, tr, det_thr, out_path) for tn, tr in tet_recs.items()))
 
 
 def __print_results(results):
-    upt_str = "".join([f"\n\ttet{i}: {r.get_num_units()}" for i,r in results.items()])
+    upt_str = "".join([f"\n\ttet_{i:02}: {r.get_num_units()}" for i,r in results.items()])
     print(f"Units per tet: {upt_str}")
     print(f"Total units: {np.sum([r.get_num_units() for r in results.values()])}")
 
@@ -76,19 +83,19 @@ if __name__ == "__main__":
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
     args.add_argument("--n_jobs", type=int, default=1, help=f"Number of parallel sorting jobs to run (defauls is {1}).")
-    #args.add_argument("--format", default="phy", help=f"Format for the output data, one of: 'phy'(default).")
+    args.add_argument("--format", default="phy", help=f"Format for the output data, one of: {SUPPORTED_FORMATS}.")
     args = args.parse_args()
     __write_params(args)
 
 
     rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
-    __write_segment_shifts(__get_segment_shifts(rec), join(args.out_path, "merged.resofs"))
+    __write_segment_shifts(__get_segment_shifts(rec), join(args.out_path, "concatenated.resofs"))
 
     layout = __get_implant_layout(args.drive)
     rec_c = concatenate_recordings([rec]).set_probegroup(layout, group_mode="by_probe")
     rec_per_tet = rec_c.split_by(property="group")
 
     results = __sort_tetrodes(args.det_thr, rec_per_tet, args.out_path,\
-                args.n_jobs, args.bp_min, args.bp_max)
+                args.n_jobs, args.format, args.bp_min, args.bp_max)
     __print_results(results)
     assert rec_per_tet.keys() == results.keys()
