@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pandas import read_csv, DataFrame as df
 from abc import ABC, abstractmethod
+from itertools import accumulate
 
 
 class SpikeFormat(ABC):
@@ -43,33 +44,61 @@ class Phy(SpikeFormat):
 
 
 class CluRes(SpikeFormat):
-    def __init__(self, sorting: BaseSorting=None, phy_dir=None):
-        """ Convert sorted data to clu-res format.
-            When converting from phy ignore "unsorted" clusters.
-            Args:
-                sorting - sorting extractor (if provided don't pass `phy_dir`)
-                phy_dir - path to a folder with data in phy format (if provided don't pass `sorting`)
-        """
-        if sorting is not None and phy_dir is not None:
-            raise ValueError("Provide only `sorting` or only `phy_dir`")
-        if sorting is not None:
-            self.clu, self.res = CluRes.__from_sorting(sorting)
-        if phy_dir is not None:
-            self.clu, self.res = CluRes.__from_phy(phy_dir)
+    """ Convert sorted data to clu-res format.
+        When converting from phy ignore "unsorted" clusters.
+    """
+    def __init__(self, clu, res):
+        assert len(clu) == len(res)
+        self.clu = clu
+        self.res = res
+        self.num_clusters = max(clu) - 1 if len(clu) > 0 else 0
 
-    def save(self, path):
-        """ Save .clu and .res to the given path (append extensions). """
-        print(self.clu.shape, self.res.shape)
-        np.savetxt(path + ".clu", self.clu, fmt="%i")
-        np.savetxt(path + ".res", self.res, fmt="%i")
+    def save(self, base_path):
+        """ Save .clu and .res to the given base_path (append extensions). """
+        np.savetxt(base_path + ".clu", self.clu, fmt="%i")
+        np.savetxt(base_path + ".res", self.res, fmt="%i")
 
     @classmethod
-    def __from_sorting(cls, sorting: BaseSorting):
+    def load(cls, base_path):
+        """ Load .clu and .res from the given base_path (append extensions). """
+        clu = np.loadtxt(base_path + ".clu", dtype=int)
+        res = np.loadtxt(base_path + ".res", dtype=int)
+        return CluRes(clu, res)
+
+    @classmethod
+    def merge_tetrodes(cls, tets: dict):
+        """ Merge clusters from several tetrodes into one CluRes.
+
+            Args:
+                tets - dict {tet: CluRes}
+            Return:
+                Merged, CluRes, origins (dict {cluster: tet})
+        """
+        cluress = {tet: cr for tet, cr in tets.items() if cr.num_clusters > 0}
+        clu_shifts = accumulate([0] + [cr.num_clusters for cr in cluress.values()][:-1])
+        clu_shifts = dict(zip(cluress.keys(), clu_shifts))
+
+        clu_merged, res_merged, origins = [], [], {}
+        for tet, cs in clu_shifts.items():
+            res_merged.extend(cluress[tet].res)
+            clu = cluress[tet].clu.copy()
+            clu[clu > 1] += cs  # 0-noise, 1-mua so we keep them the same from every tet
+            clu_merged.extend(clu)
+            for c in np.unique(clu):
+                origins[c] = tet
+            origins[0] = origins[1] = '-'
+
+        srted = sorted(zip(res_merged, clu_merged))
+        res_merged, clu_merged = zip(*srted)
+        return CluRes(clu_merged, res_merged), origins
+
+    @classmethod
+    def from_sorting(cls, sorting: BaseSorting):
         """ Extract .clu and .res from a sorting extractor.
             Args:
                 sorting - instance of spikeinterface.core.BaseSorting
             Return:
-                clu, res - (np.ndarray, np.ndarray)
+                A CluRes object.
         """
         uids = sorting.unit_ids
         cluster_groups = df({'cluster_id': [i for i in range(len(uids))],
@@ -80,12 +109,12 @@ class CluRes(SpikeFormat):
         return CluRes.__from_spikes(cluster_groups, spike_times, spike_labels)
 
     @classmethod
-    def __from_phy(cls, phy_dir):
+    def from_phy(cls, phy_dir):
         """ Extract .clu and .res from data saved in phy format. Ignore "unsorted" clusters.
             Args:
                 phy_dir - path to directory with data in phy format
             Return:
-                clu, res - (np.ndarray, np.ndarray)
+                A CluRes object.
         """
         cluster_groups = read_csv(join(phy_dir, "cluster_group.tsv"), sep="\t")
         spike_times = np.load(join(phy_dir, "spike_times.npy"))
@@ -120,4 +149,4 @@ class CluRes(SpikeFormat):
             clu[spike_clusters == c] = i + 2
 
         assert len(clu) == len(res)
-        return clu, res
+        return CluRes(clu, res)

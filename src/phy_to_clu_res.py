@@ -12,5 +12,5 @@ for tet in listdir(args.input_dir):
     if not isdir(tet_dir):
         continue
     phy_dir = join(tet_dir, "phy_export")
-    CluRes(phy_dir=phy_dir).save(join(tet_dir, tet))
+    CluRes.from_phy(phy_dir).save(join(tet_dir, tet))
     print(f"Converted {tet} to clu-res.")
