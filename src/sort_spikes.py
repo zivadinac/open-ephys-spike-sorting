@@ -60,7 +60,7 @@ def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, fmt, bp_min=300, bp_max
             case "phy":
                 Phy(tv_tr, res).save(tet_op)
             case "clu-res":
-                CluRes(sorting=res).save(join(tet_op, tet_fn))
+                CluRes.from_sorting(res).save(join(tet_op, tet_fn))
             case _:
                 raise ValueError(f"Invalid format {fmt}. Supported formats are {SUPPORTED_FORMATS}")
         return tn, res
