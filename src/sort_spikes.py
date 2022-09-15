@@ -10,7 +10,6 @@ import numpy as np
 from spikeinterface.full import concatenate_recordings
 import spikeinterface.extractors as se
 import spikeinterface.sorters as ss
-from spikeinterface.core import load_extractor
 from spikeinterface.toolkit.preprocessing import bandpass_filter
 from joblib import Parallel, delayed
 import src.implants as implants
@@ -46,16 +45,16 @@ def __write_segment_shifts(ss, path):
 
 
 def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, fmt, bp_min=300, bp_max=6000):
-    def __run(tn, tr, dt, op):
-        tet_fn = f"tet_{tn:02}"
+    def __run(tet_num, tet_recording):
+        tet_fn = f"tet_{tet_num:02}"
         print(f"Sorting {tet_fn}.")
-        tet_op = join(op, tet_fn)
-        res = ss.run_sorter("mountainsort4", tr,\
+        tet_op = join(out_path, tet_fn)
+        res = ss.run_sorter("mountainsort4", tet_recording,\
                       tet_op,\
                       with_output=True, remove_existing_folder=True,\
-                      **{"detect_threshold": dt, "freq_min": bp_min, "freq_max": bp_max})
-        tv_tr = tr if tr.get_annotation("is_filtered") else\
-                bandpass_filter(tr, bp_min, bp_max)
+                      **{"detect_threshold": det_thr, "freq_min": bp_min, "freq_max": bp_max})
+        tv_tr = tet_recording if tet_recording.get_annotation("is_filtered") else\
+                bandpass_filter(tet_recording, bp_min, bp_max)
         match fmt:
             case "phy":
                 Phy(tv_tr, res).save(tet_op)
@@ -63,9 +62,9 @@ def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, fmt, bp_min=300, bp_max
                 CluRes.from_sorting(res).save(join(tet_op, tet_fn))
             case _:
                 raise ValueError(f"Invalid format {fmt}. Supported formats are {SUPPORTED_FORMATS}")
-        return tn, res
+        return tet_num, res
 
-    return dict(Parallel(n_jobs=n_jobs, backend="threading")(delayed(__run)(tn, tr, det_thr, out_path) for tn, tr in tet_recs.items()))
+    return dict(Parallel(n_jobs=n_jobs, backend="threading")(delayed(__run)(tet_num, tet_recording) for tet_num, tet_recording in tet_recs.items()))
 
 
 def __print_results(results):
@@ -83,7 +82,7 @@ if __name__ == "__main__":
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
     args.add_argument("--n_jobs", type=int, default=1, help=f"Number of parallel sorting jobs to run (defauls is {1}).")
-    args.add_argument("--format", default="phy", help=f"Format for the output data, one of: {SUPPORTED_FORMATS}.")
+    args.add_argument("--format", default="phy", help=f"Format for the output data, one of: {SUPPORTED_FORMATS} (default is 'phy').")
     args = args.parse_args()
     __write_params(args)
 
