@@ -59,7 +59,7 @@ class CluRes(SpikeFormat):
     """
     def __init__(self, clu, res, des=None):
         assert len(clu) == len(res) or len(clu) == len(res) + 1
-        assert len(des) == np.max(clu)
+        assert len(clu) == 0 or len(des) == np.max(clu)
         if len(clu) == len(res) + 1:
             assert np.max(clu) == clu[0]
         self._clu = clu
@@ -190,6 +190,7 @@ class CluRes(SpikeFormat):
             clu[spike_clusters == c] = i + 2
             if cluster_des is not None:
                 des.append(cluster_des[cluster_des.cluster_id == c].des.item())
-        clu = [clu.max()] + clu.tolist()
-        assert len(clu) == len(res) + 1
+        if clu is not None and len(clu) > 0:
+            clu = [clu.max()] + clu.tolist()
+            assert len(clu) == len(res) + 1
         return CluRes(clu, res, des)
