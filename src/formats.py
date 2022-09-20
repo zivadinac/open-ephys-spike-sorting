@@ -106,7 +106,7 @@ class CluRes(SpikeFormat):
         clu_merged, res_merged, origins = [], [], {}
         for tet, cs in clu_shifts.items():
             res_merged.extend(cluress[tet].res)
-            clu = cluress[tet].clu.copy()
+            clu = np.array(cluress[tet].clu.copy())
             clu[clu > 1] += cs  # 0-noise, 1-mua so we keep them the same from every tet
             clu_merged.extend(clu)
             for c in np.unique(clu):
@@ -125,7 +125,6 @@ class CluRes(SpikeFormat):
                 des_merged.extend(cr.des[1:])
         else:
             des_merged = None
-        print(len(des_merged), np.unique(clu_merged), len(np.unique(clu_merged)))
         return CluRes(clu_merged, res_merged, des_merged), origins
 
     @classmethod
