@@ -47,10 +47,12 @@ def __read_laser(args, resofs, desen=None):
         laser_on = laser.timestamp[laser.state == 1].to_numpy()
         laser_off = laser.timestamp[laser.state == 0].to_numpy()
         assert laser_on[0] != laser_off[0]
-        if laser_on[0] < laser_off[0]:
-            laser_on = laser_on[:-1]
-        else:
-            laser_off = laser_off[1:]
+        if laser_on.shape != laser_off.shape:
+            if laser_on[0] < laser_off[0]:
+                laser_on = laser_on[:-1]
+            else:
+                print("laser_off")
+                laser_off = laser_off[1:]
         laser = np.stack([laser_on, laser_off], axis=1)
         # shift timestamps to start at the end of previous session
         laser = laser - laser_rec.continuous[0].timestamps[0]\
@@ -142,6 +144,7 @@ if __name__ == "__main__":
     desen.to_csv(join(args.out_path, f"{args.basename}.desen"), sep=' ', header=False, index=False)
     if laser is not None:
         np.savetxt(join(args.out_path, f"{args.basename}.laser"), laser, delimiter=' ', fmt="%i")
+    exit()
 
     layout = __get_implant_layout(args.drive)
     rec_c = concatenate_recordings([rec]).set_probegroup(layout, group_mode="by_probe")
