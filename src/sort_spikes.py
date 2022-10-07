@@ -4,6 +4,7 @@ if __name__ == '__main__' and __package__ is None:
 
 from os import makedirs
 from os.path import join, exists
+from shutil import copy
 from argparse import ArgumentParser
 import json
 import numpy as np
@@ -16,6 +17,7 @@ from open_ephys.analysis import Session
 from joblib import Parallel, delayed
 import src.implants as implants
 from src.formats import Phy, CluRes, SUPPORTED_FORMATS
+from src.swrs import find_and_merge_SWRs
 
 
 def __read_desen(args):
@@ -139,12 +141,18 @@ if __name__ == "__main__":
     resofs = __get_resofs(rec)
     desen = __read_desen(args)
     laser = __read_laser(args, resofs, desen)
+    swrs = find_and_merge_SWRs(args.recording_path, resofs.tolist())
 
     __write_txt(resofs, join(args.out_path, f"{args.basename}.resofs"))
     desen.to_csv(join(args.out_path, f"{args.basename}.desen"), sep=' ', header=False, index=False)
     if laser is not None:
         np.savetxt(join(args.out_path, f"{args.basename}.laser"), laser, delimiter=' ', fmt="%i")
-    exit()
+    if swrs.size > 0:
+        np.savetxt(join(args.out_path, f"{args.basename}.sw"), swrs, delimiter=' ', fmt="%i")
+
+    if exists(join(args.recording_path, "recording.desel")):
+        copy(join(args.recording_path, "recording.desel"),
+             join(args.out_path, f"{args.basename}.desel"))
 
     layout = __get_implant_layout(args.drive)
     rec_c = concatenate_recordings([rec]).set_probegroup(layout, group_mode="by_probe")
