@@ -18,6 +18,26 @@ from joblib import Parallel, delayed
 import src.implants as implants
 from src.formats import Phy, CluRes, SUPPORTED_FORMATS
 from src.swrs import find_and_merge_SWRs
+import pyopenephys as poe
+
+
+def __extract_raw_positions(tracking, missing_frames):
+    delta_t = np.diff(tracking[0].timestamps)
+    mean_delta_t = np.mean(delta_t)
+    mf = missing_frames
+    while mf > 0:
+
+
+
+def __extract_whl(args):
+    sess = Session(args.recording_path)
+    tr_sess = poe.File(sess.recordnodes[0].directory)
+
+    for i, (r_s, r_t) in enumerate(zip(sess.recordnodes[0].recordings, tr_sess.experiments[0].recordings)):
+        num_pulses = r_s.events[r_s.events.channel == args.tracking_channel].shape[0] //) 2
+        num_frames = r_t.tracking[0].timestamps.shape[0]
+        __get_raw_positions(r_t, num_pulses - num_frames)
+
 
 
 def __read_desen(args):
