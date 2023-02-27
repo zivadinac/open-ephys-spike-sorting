@@ -62,6 +62,7 @@ def __read_laser(args, resofs, desen=None):
 
     rec = Session(args.recording_path)
     laser_inds = desen[desen.laser_type != "no"].index.tolist()
+    print(laser_inds)
     laser_ts = []
     for li in laser_inds:
         laser_rec = rec.recordnodes[0].recordings[li]
@@ -78,7 +79,7 @@ def __read_laser(args, resofs, desen=None):
         laser = np.stack([laser_on, laser_off], axis=1)
         # shift timestamps to start at the end of previous session
         laser = laser - laser_rec.continuous[0].timestamps[0]\
-                      + resofs[li-1] if li > 0 else 0
+                      + (resofs[li-1] if li > 0 else 0)
         laser_ts.append(laser)
     return np.concatenate(laser_ts)
 
@@ -157,17 +158,22 @@ if __name__ == "__main__":
 
 
     rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
+    print(rec)
 
     resofs = __get_resofs(rec)
     desen = __read_desen(args)
     laser = __read_laser(args, resofs, desen)
-    swrs = find_and_merge_SWRs(args.recording_path, resofs.tolist())
+    try:
+        swrs = find_and_merge_SWRs(args.recording_path, resofs.tolist())
+    except:
+        print("Cannot find SWRs (.sw files).")
+        swrs = None
 
     __write_txt(resofs, join(args.out_path, f"{args.basename}.resofs"))
     desen.to_csv(join(args.out_path, f"{args.basename}.desen"), sep=' ', header=False, index=False)
     if laser is not None:
         np.savetxt(join(args.out_path, f"{args.basename}.laser"), laser, delimiter=' ', fmt="%i")
-    if swrs.size > 0:
+    if swrs is not None and swrs.size > 0:
         np.savetxt(join(args.out_path, f"{args.basename}.sw"), swrs, delimiter=' ', fmt="%i")
 
     if exists(join(args.recording_path, "recording.desel")):
