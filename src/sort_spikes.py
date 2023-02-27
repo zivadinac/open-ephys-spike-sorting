@@ -59,7 +59,7 @@ def __read_laser(args, resofs, desen=None):
         laser = np.stack([laser_on, laser_off], axis=1)
         # shift timestamps to start at the end of previous session
         laser = laser - laser_rec.continuous[0].timestamps[0]\
-                      + resofs[li-1] if li > 0 else 0
+                      + (resofs[li-1] if li > 0 else 0)
         laser_ts.append(laser)
     return np.concatenate(laser_ts)
 

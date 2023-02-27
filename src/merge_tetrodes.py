@@ -12,6 +12,7 @@ args.add_argument("--basename", default="basename", help=f"Basename for the merg
 args = args.parse_args()
 
 tets = listdir(args.input_dir)
+tets = filter(lambda tet: tet.startswith("tet"), tets)
 tets = list(filter(lambda tet: isdir(join(args.input_dir, tet)), tets))
 srted_tets = sorted(zip([int(tet[4:]) for tet in tets], tets)) # cut out after tet_
 tet_nums, tets = zip(*srted_tets)
