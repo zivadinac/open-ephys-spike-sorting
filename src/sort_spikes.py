@@ -1,6 +1,6 @@
-if __name__ == '__main__' and __package__ is None:
-    from os import sys, path
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+#if __name__ == '__main__' and __package__ is None:
+#    from os import sys, path
+#    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from os import makedirs
 from os.path import join, exists
@@ -21,23 +21,45 @@ from src.swrs import find_and_merge_SWRs
 import pyopenephys as poe
 
 
-def __extract_raw_positions(tracking, missing_frames):
-    delta_t = np.diff(tracking[0].timestamps)
-    mean_delta_t = np.mean(delta_t)
-    mf = missing_frames
-    while mf > 0:
+def __extract_raw_positions(tracking, ttl_ts):
+    x = (tracking.x * tracking.width).astype(np.int16)
+    y = (tracking.y * tracking.height).astype(np.int16)
+    assert x.shape == y.shape
+
+    tracking_ts = np.array(tracking.times) - np.array(tracking.times)[0]
+    ttl_ts_normed = (ttl_ts - ttl_ts[0]) * 0.05 / 1000
+
+    whl = -1 * np.ones((len(ttl_ts), 2))
+    num_missing = len(ttl_ts) - len(x)
+    for i, ts in enumerate(tracking_ts):
+        j = i + np.argmin(np.abs(ts - ttl_ts[i:i + num_missing]))
+        whl[j] = x[i], y[i]
+    return whl
 
 
-
-def __extract_whl(args):
+def __extract_and_write_whl(args):
     sess = Session(args.recording_path)
     tr_sess = poe.File(sess.recordnodes[0].directory)
 
+    whls = []
     for i, (r_s, r_t) in enumerate(zip(sess.recordnodes[0].recordings, tr_sess.experiments[0].recordings)):
-        num_pulses = r_s.events[r_s.events.channel == args.tracking_channel].shape[0] //) 2
-        num_frames = r_t.tracking[0].timestamps.shape[0]
-        __get_raw_positions(r_t, num_pulses - num_frames)
-
+        try:
+            ttl_ts = r_s.events[(r_s.events.channel == args.tracking_channel) &
+                                (r_s.events.state == 0)].timestamp.to_numpy()
+            whl_r = __extract_raw_positions(r_t.tracking[0], ttl_ts)
+            whl_g = __extract_raw_positions(r_t.tracking[1], ttl_ts)
+            whl_b = __extract_raw_positions(r_t.tracking[2], ttl_ts)
+            whl = np.concatenate([whl_r, whl_g, whl_b], axis=1)
+            whls.append(whl)
+            print(i, whl.shape)
+        except Exception as e:
+            print(e)
+            print(f"Skipping recording {i}")
+            if i > 0:
+                raise e
+    with open(join(args.out_path, f"{args.basename}.whl"), "w") as out_f:
+        for whl in whls:
+            np.savetxt(out_f, whl, fmt="%5d")
 
 
 def __read_desen(args):
@@ -143,9 +165,9 @@ def __print_results(results):
 
 if __name__ == "__main__":
     args = ArgumentParser()
-    args.add_argument("recording_path", help="Path to the recorded data.")
-    args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
-    args.add_argument("out_path", help="Output path for sorted data.")
+    #args.add_argument("recording_path", help="Path to the recorded data.")
+    #args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
+    #args.add_argument("out_path", help="Output path for sorted data.")
     args.add_argument("--det_thr", type=float, default=5, help="Threshold for spike detection (default is 5).")
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
@@ -153,11 +175,18 @@ if __name__ == "__main__":
     args.add_argument("--format", default="phy", help=f"Format for the output data, one of: {SUPPORTED_FORMATS} (default is 'phy').")
     args.add_argument("--basename", default="basename", help=f"Basename for the output data files.")
     args.add_argument("--laser_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
+    args.add_argument("--tracking_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
     args = args.parse_args()
+    args.recording_path = "/workspace/phd_data/raw/2022-11-23_main"
+    args.drive = "igor_drive_og_rhd_64"
+    args.out_path = "whl_test"
+    args.tracking_channel = 1
     __write_params(args)
 
 
     rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
+    __extract_and_write_whl(args)
+    exit()
     print(rec)
 
     resofs = __get_resofs(rec)
