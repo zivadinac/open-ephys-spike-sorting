@@ -205,7 +205,7 @@ def vlad_tetrodes():
     tetrodes.append(make_tetrode(4, [36,37,38,39], position=[-3600, 3100]))
     tetrodes.append(make_tetrode(5, [70,71,72,73], position=[-3950, 2900]))
     tetrodes.append(make_tetrode(6, [66,67,76,77], position=[-3600, 2700]))
-    
+
     tetrodes.append(make_tetrode(7, [52,53,54,55], position=[-3950, 3300]))
     tetrodes.append(make_tetrode(8, [60,61,62,63], position=[-4300, 3500]))
     tetrodes.append(make_tetrode(9, [40,41,42,43], position=[-4650, 3100]))
