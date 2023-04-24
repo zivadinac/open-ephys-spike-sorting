@@ -12,7 +12,7 @@ from pandas import read_csv
 from spikeinterface.full import concatenate_recordings
 import spikeinterface.extractors as se
 import spikeinterface.sorters as ss
-from spikeinterface.toolkit.preprocessing import bandpass_filter
+from spikeinterface.preprocessing import bandpass_filter
 from open_ephys.analysis import Session
 from joblib import Parallel, delayed
 import src.implants as implants
@@ -176,6 +176,7 @@ if __name__ == "__main__":
     args.add_argument("--basename", default="basename", help=f"Basename for the output data files.")
     args.add_argument("--laser_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
     args.add_argument("--tracking_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
+    args.add_argument("--tetrodes", "-ts", type=int, default=None, nargs="+", help="List of tetrodes to process; default is None - process all tetrodes.")
     args = args.parse_args()
     args.recording_path = "/workspace/phd_data/raw/2022-11-23_main"
     args.drive = "igor_drive_og_rhd_64"
@@ -212,6 +213,8 @@ if __name__ == "__main__":
     layout = __get_implant_layout(args.drive)
     rec_c = concatenate_recordings([rec]).set_probegroup(layout, group_mode="by_probe")
     rec_per_tet = rec_c.split_by(property="group")
+    if args.tetrodes is not None:
+        rec_per_tet = {t: rec_per_tet[t] for t in args.tetrodes}
 
     results = __sort_tetrodes(args.det_thr, rec_per_tet, args.out_path,\
                 args.n_jobs, args.format, args.bp_min, args.bp_max)
