@@ -14,7 +14,8 @@ args = args.parse_args()
 tets = listdir(args.input_dir)
 tets = filter(lambda tet: tet.startswith("tet"), tets)
 tets = list(filter(lambda tet: isdir(join(args.input_dir, tet)), tets))
-srted_tets = sorted(zip([int(tet[4:]) for tet in tets], tets)) # cut out after tet_
+tn_idx = 4 if '_' in tets[0] else 3
+srted_tets = sorted(zip([int(tet[tn_idx:]) for tet in tets], tets)) # cut out after tet_
 tet_nums, tets = zip(*srted_tets)
 
 match args.format:
