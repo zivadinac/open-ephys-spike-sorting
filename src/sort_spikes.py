@@ -46,9 +46,16 @@ def __read_laser(args, resofs, desen=None):
     laser_ts = []
     for li in laser_inds:
         laser_rec = rec.recordnodes[0].recordings[li]
-        laser = laser_rec.events[laser_rec.events.channel == args.laser_channel]
-        laser_on = laser.timestamp[laser.state == 1].to_numpy()
-        laser_off = laser.timestamp[laser.state == 0].to_numpy()
+        try:
+            laser = laser_rec.events[laser_rec.events.channel == args.laser_channel]
+            laser_on = laser.timestamp[laser.state == 1].to_numpy()
+            laser_off = laser.timestamp[laser.state == 0].to_numpy()
+        except:
+            laser = laser_rec.events[laser_rec.events.line == args.laser_channel]
+            laser_on = laser.sample_number[laser.state == 1].to_numpy()
+            laser_off = laser.sample_number[laser.state == 0].to_numpy()
+        print(laser_on.shape, laser_off.shape)
+        print(laser_on, laser_off)
         assert laser_on[0] != laser_off[0]
         if laser_on.shape != laser_off.shape:
             if laser_on[0] < laser_off[0]:
@@ -58,8 +65,8 @@ def __read_laser(args, resofs, desen=None):
                 laser_off = laser_off[1:]
         laser = np.stack([laser_on, laser_off], axis=1)
         # shift timestamps to start at the end of previous session
-        laser = laser - laser_rec.continuous[0].timestamps[0]\
-                      + (resofs[li-1] if li > 0 else 0)
+        #laser = laser - laser_rec.continuous[0].timestamps[0]\
+        #              + (resofs[li-1] if li > 0 else 0)
         laser_ts.append(laser)
     return np.concatenate(laser_ts)
 
