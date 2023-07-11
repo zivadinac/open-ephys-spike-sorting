@@ -30,7 +30,7 @@ class Phy(SpikeFormat):
         self.wfe_cache_dir = TemporaryDirectory()
         self.wfe = WaveformExtractor.create(recording, sorting,
                    self.wfe_cache_dir.name, remove_if_exists=True)
-        self.wfe.set_params()
+        self.wfe.set_params(dtype=float)
         self.wfe.run_extract_waveforms()
 
     def __del__(self):
@@ -59,7 +59,9 @@ class CluRes(SpikeFormat):
     """
     def __init__(self, clu, res, des=None):
         assert len(clu) == len(res) or len(clu) == len(res) + 1
-        assert len(clu) == 0 or len(des) == np.max(clu)
+        if des is not None:
+            # print(len(clu), len(des), np.max(clu))
+            assert len(clu) == 0 or len(des) == np.max(clu)
         if len(clu) == len(res) + 1:
             assert np.max(clu) == clu[0]
         self._clu = clu
@@ -151,6 +153,7 @@ class CluRes(SpikeFormat):
             Return:
                 A CluRes object.
         """
+        # print(phy_dir)
         cluster_groups = read_csv(join(phy_dir, "cluster_group.tsv"), sep="\t")
         spike_times = np.load(join(phy_dir, "spike_times.npy"))
         spike_clusters = np.load(join(phy_dir, "spike_clusters.npy"))
@@ -164,6 +167,13 @@ class CluRes(SpikeFormat):
     def __from_spikes(cls, cluster_groups, spike_times, spike_clusters, cluster_des=None):
         # remove spikes from unsorted clusters
         unsorted_clusters = cluster_groups[cluster_groups["group"] == "unsorted"]["cluster_id"].tolist()
+        # sometimes doesn't write usnorted clusters
+        # so we have to deal with that
+        #all_clusters = np.unique(spike_clusters)
+        #for c in all_clusters:
+        #    if c not in cluster_groups.cluster_id:
+        #        unsorted_clusters.append(c)
+
         for usc in unsorted_clusters:
             inds = spike_clusters == usc
             spike_clusters[inds] = -1
@@ -192,4 +202,5 @@ class CluRes(SpikeFormat):
         if clu is not None and len(clu) > 0:
             clu = [clu.max()] + clu.tolist()
             assert len(clu) == len(res) + 1
+        # print(good_clusters, unsorted_clusters, np.unique(clu), des)
         return CluRes(clu, res, des)

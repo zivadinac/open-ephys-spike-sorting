@@ -1,6 +1,6 @@
-if __name__ == '__main__' and __package__ is None:
-    from os import sys, path
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+#if __name__ == '__main__' and __package__ is None:
+#    from os import sys, path
+#    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from os import makedirs
 from os.path import join, exists
@@ -18,6 +18,99 @@ from joblib import Parallel, delayed
 import src.implants as implants
 from src.formats import Phy, CluRes, SUPPORTED_FORMATS
 from src.swrs import find_and_merge_SWRs
+import pyopenephys as poe
+import struct
+
+
+class MyRec:
+    def __init__(self):
+        self.tracking = []
+        self.events = []
+
+class MyTrk:
+    def __init__(self, x, y, w, h, times):
+        self.x = x
+        self.y = y
+        self.width = w
+        self.height = h
+        self.times = times / 20000
+
+class MyEvs:
+    def __init__(self, times, cs):
+        self.times = times / 20000
+        self.channel_states = cs
+
+
+def __read_rec(rec_dir):
+    rec = MyRec()
+
+    ttl_dir = rec_dir / "events/Rhythm_FPGA-100.0/TTL_1"
+    ev_cs = np.load(ttl_dir / "channel_states.npy")
+    ev_ts = np.load(ttl_dir / "timestamps.npy")
+    rec.events.append(MyEvs(ev_ts, ev_cs))
+
+    for i in [1, 2, 3]:
+        trk_dir = rec_dir / f"events/Tracking_Port-104.0/BINARY_group_{i}"
+        tr_da = np.load(trk_dir / "data_array.npy")
+        tr_da = np.array([struct.unpack('4f', d) for d in tr_da])
+        tr_ts = np.load(trk_dir / "timestamps.npy")
+        tr_ts = ev_ts[ev_cs == 1][:len(tr_ts)]  # we use this code to mitigate wrongly written timestamps, so we just us TTL timestamps
+        trk = MyTrk(tr_da[:, 0], tr_da[:, 1], tr_da[:, 2], tr_da[:, 3], tr_ts)
+        rec.tracking.append(trk)
+    return rec
+
+
+def __extract_raw_positions(tracking, ttl_ts, prev_end_time):
+    from jcl.utils import __interpolate_linear_position
+    x = (tracking.x * tracking.width).astype(np.int16)
+    y = (tracking.y * tracking.height).astype(np.int16)
+    assert x.shape == y.shape
+
+    tracking_ts = tracking.times.magnitude if type(tracking.times) is not np.ndarray else tracking.times
+    whl = -1 * np.ones((len(ttl_ts), 3))
+    num_missing = len(ttl_ts) - len(x)
+    for i, ts in enumerate(tracking_ts):
+        j = np.argmax(ts < ttl_ts) - 1
+        whl[j] = x[i], y[i], int((ttl_ts[j] + prev_end_time) * 20_000)
+    whl[:, 2] = __interpolate_linear_position(whl[:, 2]).astype(int)
+    return whl
+
+
+def __extract_and_write_whl(args):
+    tr_sess = poe.File(join(args.recording_path, "Record Node 101"))
+
+    whls = []
+    skipped = []
+    prev_end_time = 0
+    start_rec = 0
+    recs = tr_sess.experiments[0].recordings
+    for i, r_t in enumerate(recs):
+        try:
+            if r_t._processor_sample_rates is None or len(r_t._processor_sample_rates) == 0:
+                r_t = __read_rec(r_t.absolute_foldername)
+
+            if i > 0:
+                prev_end_time = prev_end_time + recs[i-1].duration.magnitude
+            ttl_ts = r_t.events[0].times[r_t.events[0].channel_states == 1]
+            if type(ttl_ts) is not np.ndarray:
+                ttl_ts = ttl_ts.magnitude
+
+            whl_r = __extract_raw_positions(r_t.tracking[0], ttl_ts, prev_end_time)
+            whl_g = __extract_raw_positions(r_t.tracking[1], ttl_ts, prev_end_time)
+            whl_b = __extract_raw_positions(r_t.tracking[2], ttl_ts, prev_end_time)
+            whl = np.concatenate([whl_r[:, [0,1]], whl_g[:, [0,1]], whl_b], axis=1)
+            whls.append(whl)
+            # print(f"=============== {i + start_rec} =================")
+            with open(join(args.out_path, f"{args.basename}_{start_rec + i + 1}.whl.raw"), "w") as out_f:
+                np.savetxt(out_f, whl, fmt="%5d")
+        except Exception as e:
+            print(e)
+            print(f"Skipping recording {i}")
+            skipped.append(i)
+    print(skipped)
+    with open(join(args.out_path, f"{args.basename}.whl.raw"), "w") as out_f:
+        for whl in whls:
+            np.savetxt(out_f, whl, fmt="%5d")
 
 
 def __read_desen(args):
@@ -130,9 +223,9 @@ def __print_results(results):
 
 if __name__ == "__main__":
     args = ArgumentParser()
-    args.add_argument("recording_path", help="Path to the recorded data.")
-    args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
-    args.add_argument("out_path", help="Output path for sorted data.")
+    #args.add_argument("recording_path", help="Path to the recorded data.")
+    #args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
+    #args.add_argument("out_path", help="Output path for sorted data.")
     args.add_argument("--det_thr", type=float, default=5, help="Threshold for spike detection (default is 5).")
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
@@ -140,13 +233,25 @@ if __name__ == "__main__":
     args.add_argument("--format", default="phy", help=f"Format for the output data, one of: {SUPPORTED_FORMATS} (default is 'phy').")
     args.add_argument("--basename", default="basename", help=f"Basename for the output data files.")
     args.add_argument("--laser_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
+    args.add_argument("--tracking_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
     args.add_argument("--tetrodes", "-ts", type=int, default=None, nargs="+", help="List of tetrodes to process; default is None - process all tetrodes.")
     args = args.parse_args()
+    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-05_13-49-51_part-2"
+    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-05_13-12-59_part-1"
+    #args.recording_path = "/hdr/data/predrag/recordings_raw/2023-04-26_11-20-23"
+    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-03-31_13-26-54_first_part/"
+    args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-06_11-30-15"
+    args.drive = "igor_drive_og_rhd_64"
+    args.out_path = "whl_test"
+    args.tracking_channel = 1
+    args.basename = "jc291_060423"
     __write_params(args)
 
 
-    rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
+    #rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
+    __extract_and_write_whl(args)
     print(rec)
+    raise Exception("Done")
 
     resofs = __get_resofs(rec)
     desen = __read_desen(args)
