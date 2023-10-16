@@ -1,6 +1,6 @@
-#if __name__ == '__main__' and __package__ is None:
-#    from os import sys, path
-#    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+if __name__ == '__main__' and __package__ is None:
+    from os import sys, path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from os import makedirs
 from os.path import join, exists
@@ -83,7 +83,8 @@ def __extract_and_write_whl(args):
     skipped = []
     prev_end_time = 0
     start_rec = 0
-    recs = tr_sess.experiments[0].recordings
+    exp = 0 if args.experiment_index is None else args.experiment_index
+    recs = tr_sess.experiments[exp].recordings
     for i, r_t in enumerate(recs):
         try:
             if r_t._processor_sample_rates is None or len(r_t._processor_sample_rates) == 0:
@@ -103,6 +104,7 @@ def __extract_and_write_whl(args):
             # print(f"=============== {i + start_rec} =================")
             with open(join(args.out_path, f"{args.basename}_{start_rec + i + 1}.whl.raw"), "w") as out_f:
                 np.savetxt(out_f, whl, fmt="%5d")
+                print("saved ", i, " / ", len(recs))
         except Exception as e:
             print(e)
             print(f"Skipping recording {i}")
@@ -128,7 +130,7 @@ def __read_desen(args):
 
 def __read_laser(args, resofs, desen=None):
     if args.laser_channel is None:
-        return None
+        return None, None
 
     if desen is None:
         desen = __read_desen(args)
@@ -137,6 +139,7 @@ def __read_laser(args, resofs, desen=None):
     laser_inds = desen[desen.laser_type != "no"].index.tolist()
     print(laser_inds)
     laser_ts = []
+    laser_ts_per_session = {}
     for li in laser_inds:
         laser_rec = rec.recordnodes[0].recordings[li]
         try:
@@ -147,8 +150,6 @@ def __read_laser(args, resofs, desen=None):
             laser = laser_rec.events[laser_rec.events.line == args.laser_channel]
             laser_on = laser.sample_number[laser.state == 1].to_numpy()
             laser_off = laser.sample_number[laser.state == 0].to_numpy()
-        print(laser_on.shape, laser_off.shape)
-        print(laser_on, laser_off)
         assert laser_on[0] != laser_off[0]
         if laser_on.shape != laser_off.shape:
             if laser_on[0] < laser_off[0]:
@@ -158,10 +159,15 @@ def __read_laser(args, resofs, desen=None):
                 laser_off = laser_off[1:]
         laser = np.stack([laser_on, laser_off], axis=1)
         # shift timestamps to start at the end of previous session
-        #laser = laser - laser_rec.continuous[0].timestamps[0]\
-        #              + (resofs[li-1] if li > 0 else 0)
+        try:
+            prev_end = laser_rec.continuous[0].timestamps[0]
+        except:
+            prev_end = laser_rec.continuous[0].sample_numbers[0]
+        laser = laser - prev_end
+        laser_ts_per_session[li + 1] = laser  # session nums are 1-based
+        laser = laser + (resofs[li-1] if li > 0 else 0)
         laser_ts.append(laser)
-    return np.concatenate(laser_ts)
+    return np.concatenate(laser_ts), laser_ts_per_session
 
 
 def __write_params(args):
@@ -223,9 +229,9 @@ def __print_results(results):
 
 if __name__ == "__main__":
     args = ArgumentParser()
-    #args.add_argument("recording_path", help="Path to the recorded data.")
-    #args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
-    #args.add_argument("out_path", help="Output path for sorted data.")
+    args.add_argument("recording_path", help="Path to the recorded data.")
+    args.add_argument("drive", type=str, help=f"Path to drive layout file or name of one of predefined drives: {implants.DEFINED_IMPLANTS}.")
+    args.add_argument("out_path", help="Output path for sorted data.")
     args.add_argument("--det_thr", type=float, default=5, help="Threshold for spike detection (default is 5).")
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
@@ -235,27 +241,21 @@ if __name__ == "__main__":
     args.add_argument("--laser_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
     args.add_argument("--tracking_channel", type=int, default=None, help=f"TTL channel for laser pulses.")
     args.add_argument("--tetrodes", "-ts", type=int, default=None, nargs="+", help="List of tetrodes to process; default is None - process all tetrodes.")
+    args.add_argument("--experiment_index", "-exp", type=int, default=None)
     args = args.parse_args()
-    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-05_13-49-51_part-2"
-    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-05_13-12-59_part-1"
-    #args.recording_path = "/hdr/data/predrag/recordings_raw/2023-04-26_11-20-23"
-    #args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-03-31_13-26-54_first_part/"
-    args.recording_path = "/hdr/data/predrag/recordings_raw/jc291/2023-04-06_11-30-15"
-    args.drive = "igor_drive_og_rhd_64"
-    args.out_path = "whl_test"
-    args.tracking_channel = 1
-    args.basename = "jc291_060423"
     __write_params(args)
 
 
-    #rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path)
+    print(args)
+    rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path,
+                                               block_index=args.experiment_index)
     __extract_and_write_whl(args)
     print(rec)
     raise Exception("Done")
 
     resofs = __get_resofs(rec)
     desen = __read_desen(args)
-    laser = __read_laser(args, resofs, desen)
+    laser, laser_per_session = __read_laser(args, resofs, desen)
     try:
         swrs = find_and_merge_SWRs(args.recording_path, resofs.tolist())
     except:
@@ -266,6 +266,9 @@ if __name__ == "__main__":
     desen.to_csv(join(args.out_path, f"{args.basename}.desen"), sep=' ', header=False, index=False)
     if laser is not None:
         np.savetxt(join(args.out_path, f"{args.basename}.laser"), laser, delimiter=' ', fmt="%i")
+    if laser_per_session is not None:
+        for s, ls in laser_per_session.items():
+            np.savetxt(join(args.out_path, f"{args.basename}_{s}.laser"), ls, delimiter=' ', fmt="%i")
     if swrs is not None and swrs.size > 0:
         np.savetxt(join(args.out_path, f"{args.basename}.sw"), swrs, delimiter=' ', fmt="%i")
 
