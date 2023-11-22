@@ -2,10 +2,11 @@ from os.path import join
 import pyopenephys as poe
 import numpy as np
 import struct
-from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.interpolate import UnivariateSpline
 from scipy.signal import savgol_filter
 import src.utils as utils
 from jcl.utils import interpolate_position
+from tqdm import tqdm
 
 
 class MyRec:
@@ -73,7 +74,8 @@ def __extract_raw_positions(tracking, ttl_ts, sampling_rate):
 
 def extract_raw_whl(sessions, sampling_rate=20000):
     whls = []
-    for i, r_t in enumerate(sessions):
+    print("Extracting whl data.")
+    for i, r_t in tqdm(enumerate(sessions)):
         if r_t._processor_sample_rates is None or len(r_t._processor_sample_rates) == 0:
             print(f"__read_rec {i+1}")
             r_t_start_ts = int(r_t.start_time.magnitude * sampling_rate)
@@ -91,15 +93,13 @@ def extract_raw_whl(sessions, sampling_rate=20000):
     return whls
 
 
-def resample_512(whl, duration_ts, pix_per_cm=1, filter_window=None, interp_order=1):
+def resample_512(whl, duration_ts, pix_per_cm=1, interp_order=1):
     """ Spline interpolation of missing values in animal position data.
 
         Args:
             whl - position data, the last column should contain timestamps
             duration_ts - session duration (total numbe of samples)
             pix_per_cm - needed to conver to cm (default is 1, i.e. no conversion)
-            filter_window - window size to use for savitzky-folay position filter
-                            (defult is None - not filtering)
             interp_order - interpolation polynom degree, default 1 (linear)
         Return:
             Interpolated data in the same format as provided.
@@ -111,7 +111,7 @@ def resample_512(whl, duration_ts, pix_per_cm=1, filter_window=None, interp_orde
     new_whl[:, -1] = new_ts
     for c in range(whl.shape[1]-1):
         position = np.array(whl[:, c])
-        position[position < 0] = -1
+        position[position <= 0] = -1
         ok_idx = np.where(position != -1)[0]
 
         if position[0] == -1:
@@ -120,7 +120,7 @@ def resample_512(whl, duration_ts, pix_per_cm=1, filter_window=None, interp_orde
             position[-1] = int(np.mean(position[ok_idx[-10:]]))
 
         position = interpolate_position(position)
-        f = InterpolatedUnivariateSpline(orig_ts, position, k=interp_order)
+        f = UnivariateSpline(orig_ts, position, k=interp_order)
         # prevent interpolation from going crazy
         p_l, p_h = position[ok_idx].min(), position[ok_idx].max()
         res_position = np.clip(f(new_ts), p_l, p_h)
@@ -128,9 +128,6 @@ def resample_512(whl, duration_ts, pix_per_cm=1, filter_window=None, interp_orde
         # convert to cm
         if pix_per_cm != 1:
             res_position = res_position / pix_per_cm
-        # filter (if wanted)
-        if filter_window is not None:
-            res_position = savgol_filter(pos[:, 0], filter_window, 2)
 
         new_whl[:, c] = res_position
     return new_whl

@@ -331,7 +331,7 @@ def __read_layout_txt(path):
     with open(path, "r") as f:
         lines = f.readlines()
         try:
-            num_tetrodes = int(lines[0].strip())
+            num_tetrodes = int(lines[0].strip().split(' ')[0])
         except ValueError:  # make it more informative
             raise ValueError("Invalid content: number of tetrodes (the first line) must be an integer.")
         if len(lines) != num_tetrodes + 1 and len(lines) != (num_tetrodes * 2 + 1):
@@ -343,7 +343,7 @@ must have {num_tetrodes + 1} or {2 * num_tetrodes + 1} lines.")
         tetrodes = []
         channels = []
         for line in lines[1:num_tetrodes + 1]:
-            lc = list(map(int, line.strip().split()))
+            lc = list(map(int, line.strip().split()))[-4:]
             if len(lc) != 4:
                 raise ValueError(f"Invalid content in '.txt' file:\
 each tetrode must have 4 channels.")
