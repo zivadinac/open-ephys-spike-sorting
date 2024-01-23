@@ -1,7 +1,3 @@
-#if __name__ == '__main__' and __package__ is None:
-#    from os import sys, path
-#    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
 from os import makedirs
 from os.path import join, exists
 from shutil import copy
@@ -20,69 +16,7 @@ from src.formats import Phy, CluRes, SUPPORTED_FORMATS
 from src.swrs import find_and_merge_SWRs
 import pyopenephys as poe
 import struct
-
-
-def __read_desen(args):
-    path = join(args.recording_path, "recording.desen")
-
-    if not exists(path):
-        raise ValueError(f"Put 'recording.desen' file in the input directory {args.recording_path}")
-
-    columns = ["session_type", "env_type", "laser_type"]
-    desen = read_csv(path, names=columns, sep=' ', header=None)
-    for c in columns:
-        desen[c] = desen[c].str.lower()
-    return desen
-
-
-def __read_laser(args, resofs, desen=None):
-    if args.laser_channel is None:
-        return None, None
-
-    if desen is None:
-        desen = __read_desen(args)
-
-    rec = Session(args.recording_path)
-    laser_inds = desen[desen.laser_type != "no"].index.tolist()
-    print(laser_inds)
-    laser_ts = []
-    laser_ts_per_session = {}
-    for li in laser_inds:
-        laser_rec = rec.recordnodes[0].recordings[li]
-        try:
-            laser = laser_rec.events[laser_rec.events.channel == args.laser_channel]
-            laser_on = laser.timestamp[laser.state == 1].to_numpy()
-            laser_off = laser.timestamp[laser.state == 0].to_numpy()
-        except:
-            laser = laser_rec.events[laser_rec.events.line == args.laser_channel]
-            laser_on = laser.sample_number[laser.state == 1].to_numpy()
-            laser_off = laser.sample_number[laser.state == 0].to_numpy()
-        assert laser_on[0] != laser_off[0]
-        if laser_on.shape != laser_off.shape:
-            if laser_on[0] < laser_off[0]:
-                laser_on = laser_on[:-1]
-            else:
-                print("laser_off")
-                laser_off = laser_off[1:]
-        laser = np.stack([laser_on, laser_off], axis=1)
-        # shift timestamps to start at the end of previous session
-        try:
-            prev_end = laser_rec.continuous[0].timestamps[0]
-        except:
-            prev_end = laser_rec.continuous[0].sample_numbers[0]
-        laser = laser - prev_end
-        laser_ts_per_session[li + 1] = laser  # session nums are 1-based
-        laser = laser + (resofs[li-1] if li > 0 else 0)
-        laser_ts.append(laser)
-    return np.concatenate(laser_ts), laser_ts_per_session
-
-
-def __write_params(args):
-    if not exists(args.out_path):
-        makedirs(args.out_path, exist_ok=True)
-
-    with open(join(args.out_path, "params.json"), 'w') as f:
-        json.dump(args.__dict__, f, indent=4)
+from src.positions import extract_and_write_whl
 
 
 def __get_implant_layout(imp):
@@ -90,19 +24,6 @@ def __get_implant_layout(imp):
         return implants.read_layout(imp)
     else:
         return implants.get_implant(imp)
-
-
-def __get_resofs(recording):
-    shifts = [recording.get_num_samples(sn) for sn in range(recording.get_num_segments())]
-    shifts = np.cumsum(shifts)
-    assert shifts[-1] == recording.get_total_samples()
-    return shifts
-
-
-def __write_txt(ss, path):
-    with open(path, 'w') as f:
-        ss_str = '\n'.join(map(str, ss))
-        f.write(ss_str)
 
 
 def __sort_tetrodes(det_thr, tet_recs, out_path, n_jobs, fmt, bp_min=300, bp_max=6000):
@@ -150,10 +71,9 @@ if __name__ == "__main__":
     args.add_argument("--tetrodes", "-ts", type=int, default=None, nargs="+", help="List of tetrodes to process; default is None - process all tetrodes.")
     args.add_argument("--experiment_index", "-exp", type=int, default=None)
     args = args.parse_args()
-    args.recording_path = "/data/jc296_tuning/jc296_270723"
-    args.out_path = "/data/jc296_tuning/jc296_270723_sorting/sorting"
-    args.laser_channel = 4
+    args.recording_path = "/data/jc296_tuning/jc296_020823/jc296_2023-08-02_11-15-46"
     args.drive = "igor_drive_og_rhd_64"
+    args.out_path = "/data/jc296_tuning/jc296_020823_preprocess_test/"
     args.experiment_index = 0
     __write_params(args)
 
@@ -161,7 +81,32 @@ if __name__ == "__main__":
     print(args)
     rec = se.OpenEphysBinaryRecordingExtractor(args.recording_path,
                                                block_index=args.experiment_index)
+    __extract_and_write_whl(args)
     print(rec)
+    raise Exception("Done")
+
+    resofs = __get_resofs(rec)
+    desen = __read_desen(args)
+    laser, laser_per_session = __read_laser(args, resofs, desen)
+    try:
+        swrs = find_and_merge_SWRs(args.recording_path, resofs.tolist())
+    except:
+        print("Cannot find SWRs (.sw files).")
+        swrs = None
+
+    __write_txt(resofs, join(args.out_path, f"{args.basename}.resofs"))
+    desen.to_csv(join(args.out_path, f"{args.basename}.desen"), sep=' ', header=False, index=False)
+    if laser is not None:
+        np.savetxt(join(args.out_path, f"{args.basename}.laser"), laser, delimiter=' ', fmt="%i")
+    if laser_per_session is not None:
+        for s, ls in laser_per_session.items():
+            np.savetxt(join(args.out_path, f"{args.basename}_{s}.laser"), ls, delimiter=' ', fmt="%i")
+    if swrs is not None and swrs.size > 0:
+        np.savetxt(join(args.out_path, f"{args.basename}.sw"), swrs, delimiter=' ', fmt="%i")
+
+    if exists(join(args.recording_path, "recording.desel")):
+        copy(join(args.recording_path, "recording.desel"),
+             join(args.out_path, f"{args.basename}.desel"))
 
     layout = __get_implant_layout(args.drive)
     rec_c = concatenate_recordings([rec]).set_probegroup(layout, group_mode="by_probe")

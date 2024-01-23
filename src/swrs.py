@@ -1,6 +1,8 @@
 from pathlib import Path
+from os.path import join
 import numpy as np
 from jcl.load import readfromtxt
+from subprocess import run
 
 
 def find_SWRs(basedir):
@@ -45,3 +47,8 @@ def merge_SWRs(swrs, resofs):
 def find_and_merge_SWRs(basedir, resofs):
     """ Finds SWRs in 'basedir' and merges them into one list."""
     return merge_SWRs(find_SWRs(basedir), resofs)
+
+
+def make_eeg_swr(dat_path, desel_path, par_path, out_path):
+    sh_file = join(Path(__file__).parent, "eeg_swr.sh")
+    run([sh_file, dat_path, desel_path, par_path, out_path])

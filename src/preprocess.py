@@ -67,10 +67,16 @@ if __name__ == "__main__":
         out_dat_path = join(args.out_path, f"{args.basename}_{si+1}.dat")
         out_dat_paths.append(out_dat_path)
         if not args.skip_dats:
-            if (not args.copy_all_dats) and dur == dur_512:
-                symlink(utils.get_dat_path(s), out_dat_path)
+            if args.copy_all_dats:
+                if dur == dur_512:
+                    copy(utils.get_dat_path(s), out_dat_path)
+                else:
+                    utils.truncate_dat_512(dat, out_dat_path)
             else:
-                utils.truncate_dat_512(dat, out_dat_path)
+                if dur == dur_512:
+                    symlink(utils.get_dat_path(s), out_dat_path)
+                else:
+                    utils.truncate_dat_512(dat, out_dat_path)
 
     # compute and save .resofs
     resofs = utils.get_resofs(session_durations_512)
