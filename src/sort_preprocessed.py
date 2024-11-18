@@ -83,9 +83,9 @@ def sort(par, recordings, out_path,
 
 if __name__ == "__main__":
     args = ArgumentParser()
-    #args.add_argument("par_file", help="Path to the .par file.")
-    #args.add_argument("recording_dir", help="Path to the OpenEphys raw data.")
-    #args.add_argument("out_path", help="Output path for sorted data.")
+    args.add_argument("par_file", help="Path to the .par file.")
+    args.add_argument("recording_dir", help="Path to the OpenEphys raw data.")
+    args.add_argument("out_path", help="Output path for sorted data.")
     args.add_argument("--det_thr", type=float, default=5, help="Threshold for spike detection (default is 5).")
     args.add_argument("--bp_min", type=float, default=300, help="Lower threshold for bandpass filter (default is 300).")
     args.add_argument("--bp_max", type=float, default=6000, help="Upper threshold for bandpass filter (default is 6000).")
@@ -94,12 +94,6 @@ if __name__ == "__main__":
     args.add_argument("--tetrodes", "-ts", type=int, default=None, nargs="+", help="List of tetrodes to process; default is None - process all tetrodes.")
     args.add_argument("--basename", default=None, help=f"Basename for the output data files.")
     args = args.parse_args()
-    args.par_file = "/data/jc296_tuning/jc296_270723/jc296_270723.par"
-    #args.recording_dir = "/data/jc296_tuning/jc296_270723"
-    args.recording_dir = "/data/jc296_tuning/jc296_020823/jc296_020823"
-    #args.out_path = "/data/jc296_tuning/jc296_270723_sorting/sorting"
-    args.out_path = "/data/jc296_tuning/jc296_020823_preprocess_test/sorting"
-    args.tetrodes = [0, 1]
     if args.basename is None:
         args.basename = basename(args.par_file.split('.')[0])
     utils.save_params(args)
