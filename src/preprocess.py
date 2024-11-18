@@ -97,14 +97,25 @@ if __name__ == "__main__":
     positions.save_whls(args.out_path, args.basename, raw_whls, res_whls)
     print(f"Extracted positions ({args.basename}.whl)")
 
-    """
     par = utils.read_par(join(args.recording_path, f"{args.basename}.par"))
-    print("Generating .eeg and .sw")
-    for dp in tqdm(out_dat_paths):
-        desel_path = join(args.out_path, f"{args.basename}.desel")
-        par_path = join(args.out_path, f"{args.basename}.par")
-        swrs.make_eeg_swr(dp, desel_path, par_path, args.out_path)
-    """
-
     if args.sort:
-        sort(par, out_dat_paths, join(args.out_path, "sorting"))
+        try:
+            sort(par, out_dat_paths, join(args.out_path, "sorting"))
+            print("Mountain sort finished")
+        except Exception as e:
+            print("===================================================")
+            print("Error with spike sorting.")
+            print(e)
+            print("===================================================")
+
+    try:
+        print("Generating .eeg and .sw")
+        for dp in tqdm(out_dat_paths):
+            desel_path = join(args.out_path, f"{args.basename}.desel")
+            par_path = join(args.out_path, f"{args.basename}.par")
+            swrs.make_eeg_swr(dp, desel_path, par_path, args.out_path)
+    except Exception as e:
+        print("===================================================")
+        print("Error making eeg.")
+        print(e)
+        print("===================================================")
