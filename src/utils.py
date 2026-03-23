@@ -1,8 +1,9 @@
 from os import makedirs
-from os.path import join, exists, basename
+from os.path import join, exists, basename, dirname
 import numpy as np
 from pandas import read_csv
 import json
+import glob
 
 
 def position_times_512(session_duration_ts):
@@ -43,7 +44,9 @@ def get_dat_path(session):
         Return:
             dat file as numpy array
     """
-    return join(session.absolute_foldername, "continuous/Rhythm_FPGA-100.0/continuous.dat")
+    dat_path = glob.glob(join(session.absolute_foldername, "continuous/Rhythm_FPGA-*/continuous.dat"))
+    assert len(dat_path) == 1
+    return dat_path[0]
 
 
 def load_dat(session):
@@ -117,7 +120,7 @@ def read_info(path, strict=False):
     info["sb"], info["maze_center"] = None, None
     info["rewards_new"], info["rewards_old"] = None, None
     try:
-        sb = lines[1].strip().split(' ') 
+        sb = lines[1].strip().split(' ')
         info["sb"] = [(float(sb[0]), float(sb[1])), (float(sb[2]), float(sb[3]))]
         info["maze_center"] = (float(c) for c in lines[2].strip().split(' '))
         new_r = lines[3].strip().split(' ')
@@ -147,8 +150,16 @@ def read_par(path):
 
         par["num_tetrodes"] = int(lines[2].strip().split(' ')[0])
         par["ref_channel"] = int(lines[2].strip().split(' ')[1])
-        par["tetrodes"] = lines[3:3+par["num_tetrodes"]]
+        last_tet_ln = par["num_tetrodes"] + 3
+        par["tetrodes"] = lines[3:last_tet_ln]
+        try:
+            num_sess = int(lines[last_tet_ln].strip().split(' ')[0])
+            par["sessions"] = lines[last_tet_ln+1:last_tet_ln+1+num_sess]
+            print(f"Read {len(par['sessions'])} sessions from {path}.")
+        except Exception as e:
+            print(f"Could not read sessions from {path}: {e}")
     sp = par["sampling_period"]
     par["sampling_rate"] = 24000 if sp == 42 else int(1_000_000 / sp)
     par["basename"] = basename(path).split('.')[0]
+    par["recording_dir"] = dirname(path)
     return par

@@ -2,7 +2,7 @@ from os.path import join
 from tempfile import TemporaryDirectory
 from spikeinterface.core import BaseSorting
 from spikeinterface.exporters import export_to_phy as to_phy
-from spikeinterface.core.waveform_extractor import WaveformExtractor
+from spikeinterface.core import create_sorting_analyzer#WaveformExtractor
 import spikeinterface.widgets as sw
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,10 +28,15 @@ class Phy(SpikeFormat):
                 sorting - sorting extractor
         """
         self.wfe_cache_dir = TemporaryDirectory()
-        self.wfe = WaveformExtractor.create(recording, sorting,
-                   self.wfe_cache_dir.name, remove_if_exists=True)
-        self.wfe.set_params(dtype=float)
-        self.wfe.run_extract_waveforms()
+        #self.wfe = SortingAnalyzer.create(recording=recording, sorting=sorting,
+        #           self.wfe_cache_dir.name, remove_if_exists=True)
+        self.wfe = create_sorting_analyzer(recording=recording, sorting=sorting,
+                                           folder=self.wfe_cache_dir.name, overwrite=True)
+        self.wfe.compute_one_extension("random_spikes")
+        self.wfe.compute_one_extension("waveforms")
+        self.wfe.compute_one_extension("templates")
+        #self.wfe.set_params(dtype=float)
+        #self.wfe.run_extract_waveforms()
 
     def __del__(self):
         self.wfe_cache_dir.cleanup()
@@ -58,12 +63,14 @@ class CluRes(SpikeFormat):
             * .des (optionally, if available)
     """
     def __init__(self, clu, res, des=None):
+        msg = f"{len(clu)} {len(res)} {len(clu)} {len(res) + 1}"
         assert len(clu) == len(res) or len(clu) == len(res) + 1
         if des is not None:
-            # print(len(clu), len(des), np.max(clu))
-            assert len(clu) == 0 or len(des) == np.max(clu)
+            msg = f"{len(clu)} {len(des)} {np.max(clu)}"
+            assert len(clu) == 0 or len(des) == np.max(clu) - 1, msg
         if len(clu) == len(res) + 1:
-            assert np.max(clu) == clu[0]
+            msg = f"{np.max(clu)} {clu[0]}"
+            assert np.max(clu) == clu[0], msg
         self._clu = clu
         self.res = res
         self.des = des
@@ -121,10 +128,10 @@ class CluRes(SpikeFormat):
 
         if np.all([cr.des is not None for cr in cluress.values()]):
             # all tetrodes have des
-            des_merged = ["p1"]  # add mua as p1
+            des_merged = []
             for cr in cluress.values():
                 # ignore mua
-                des_merged.extend(cr.des[1:])
+                des_merged.extend(cr.des)
         else:
             des_merged = None
         return CluRes(clu_merged, res_merged, des_merged), origins
@@ -153,7 +160,6 @@ class CluRes(SpikeFormat):
             Return:
                 A CluRes object.
         """
-        # print(phy_dir)
         cluster_groups = read_csv(join(phy_dir, "cluster_group.tsv"), sep="\t")
         spike_times = np.load(join(phy_dir, "spike_times.npy"))
         spike_clusters = np.load(join(phy_dir, "spike_clusters.npy"))
@@ -183,24 +189,32 @@ class CluRes(SpikeFormat):
         clu = spike_clusters.copy()
 
         # mark all noise spikes with 0
-        noise_clusters = cluster_groups[cluster_groups["group"] == "noise"]["cluster_id"].tolist()
+        noise_clusters = cluster_groups[cluster_groups["group"] == "noise"]["cluster_id"].unique().astype(int).tolist()
         for c in noise_clusters:
             clu[spike_clusters == c] = 0
 
         # mark all mua spikes with 1
-        mua_clusters = cluster_groups[cluster_groups["group"] == "mua"]["cluster_id"].tolist()
+        mua_clusters = cluster_groups[cluster_groups["group"] == "mua"]["cluster_id"].unique().astype(int).tolist()
         for c in mua_clusters:
             clu[spike_clusters == c] = 1
 
-        des = None if cluster_des is None else ['p1']  # mua is labeled as p1
+        good_idx = (clu != 0) & (clu != 1)
+        clu = clu[good_idx]  # remove noise and mua
+        spike_clusters = spike_clusters[good_idx]
+        res = res[good_idx]
+        # des = None if cluster_des is None else ['p1']  # mua is labeled as p1
+        des = None if cluster_des is None else []  # mua is labeled as p1
         # good clusters are from 2 onwards
-        good_clusters = cluster_groups[cluster_groups["group"] == "good"]["cluster_id"].tolist()
+        good_clusters = cluster_groups[cluster_groups["group"] == "good"]["cluster_id"].unique().astype(int).tolist()
         for i, c in enumerate(good_clusters):
             clu[spike_clusters == c] = i + 2
             if cluster_des is not None:
                 des.append(cluster_des[cluster_des.cluster_id == c].des.item())
         if clu is not None and len(clu) > 0:
             clu = [clu.max()] + clu.tolist()
-            assert len(clu) == len(res) + 1
-        # print(good_clusters, unsorted_clusters, np.unique(clu), des)
+            msg = f"{len(clu)} {len(res) + 1}"
+            assert len(clu) == len(res) + 1, msg
+        print("============================")
+        print(good_clusters, unsorted_clusters, np.unique(clu), des)
+        print("============================")
         return CluRes(clu, res, des)

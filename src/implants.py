@@ -1,8 +1,10 @@
 import numpy as np
+from os.path import join
 from probeinterface import ProbeGroup, generate_tetrode
 from probeinterface.io import read_prb, write_prb, write_probeinterface, write_probeinterface
 import matplotlib.pyplot as plt
 from probeinterface.plotting import plot_probe_group
+from .utils import read_par
 
 
 def make_tetrode(num, channels, position=None, contacts=[[0,0],[-20,20],[20,20],[0,40]], radius=12):
@@ -18,9 +20,10 @@ def make_tetrode(num, channels, position=None, contacts=[[0,0],[-20,20],[20,20],
         Return:
             tetrode object from probeinterface
     """
+    assert len(channels) == 4
     tet = generate_tetrode()
     tet.set_device_channel_indices(channels)
-    tet.set_contacts(contacts, shape_params={"radius": radius})
+    tet.set_contacts(contacts[:len(channels)], shape_params={"radius": radius})
 
     if position is not None:
         # the first coordinate seems to be mid-lateral axis
@@ -344,9 +347,9 @@ must have {num_tetrodes + 1} or {2 * num_tetrodes + 1} lines.")
         channels = []
         for line in lines[1:num_tetrodes + 1]:
             lc = list(map(int, line.strip().split()))[-4:]
-            if len(lc) != 4:
-                raise ValueError(f"Invalid content in '.txt' file:\
-each tetrode must have 4 channels.")
+            if len(lc) < 4:
+                missing_channels = 4 - len(lc)
+                lc.extend([-1] * missing_channels)
             channels.append(lc)
 
         if len(lines) == num_tetrodes * 2 + 1:
@@ -356,11 +359,10 @@ each tetrode must have 4 channels.")
                 lc = map(int, line.strip().split())
                 lc = np.fromiter(lc, float)
                 if len(lc) != 8:
-                    raise ValueError(f"Invalid content in '.txt' file:\
+                    raise ValueError("Invalid content in '.txt' file:\
 each tetrode must have 0 or 8 contact coordinates.")
-                lc = lc.reshape(4,2)
+                lc = lc.reshape(4, 2)
                 contacts.append(lc)
-            
             for tn in range(num_tetrodes):
                 tetrodes.append(make_tetrode(tn, channels[tn], contacts=contacts[tn]))
         else:
@@ -374,7 +376,38 @@ each tetrode must have 0 or 8 contact coordinates.")
         return layout
 
 
+def __read_layout_par(par_path=None, par=None):
+    """ Make drive layout based on a .par file. Tetrode numbers start with 0.
+
+        Args:
+            par_path - path of par file
+            par - loaded par file, dictionary
+        Return:
+            drive layout, ProbeGroup
+    """
+    assert (par_path is not None) ^ (par is not None)
+    if par is None:
+        par = read_par(par_path)
+    num_tetrodes = par["num_tetrodes"]
+    tetrodes_str = par["tetrodes"]
+    assert num_tetrodes == len(tetrodes_str)
+    layout = ProbeGroup()
+    for tn, t_str in enumerate(tetrodes_str):
+        lc = list(map(int, t_str.strip().split()))[1:]
+        if len(lc) < 4:
+            missing_channels = 4 - len(lc)
+            lc.extend([-1] * missing_channels)
+        layout.add_probe(make_tetrode(tn, lc))
+    return layout
+
+
 def read_layout(path):
+    if type(path) == dict:  # loaded par file
+        return __read_layout_par(par=path)
+
+    if path.endswith(".par"):
+        return __read_layout_par(par_path=path)
+
     if path.endswith(".prb"):
         return read_prb(path)
 

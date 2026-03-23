@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from pathlib import Path
 from os.path import join
 import numpy as np
@@ -52,3 +53,15 @@ def find_and_merge_SWRs(basedir, resofs):
 def make_eeg_swr(dat_path, desel_path, par_path, out_path):
     sh_file = join(Path(__file__).parent, "eeg_swr.sh")
     run([sh_file, dat_path, desel_path, par_path, out_path])
+
+
+if __name__ == "__main__":
+    args = ArgumentParser()
+    args.add_argument("basepath_day")
+    args.add_argument("basepath_sess")
+    args = args.parse_args()
+
+    make_eeg_swr(args.basepath_sess + ".dat",
+                 args.basepath_day + ".desel",
+                 args.basepath_day + ".par",
+                 Path(args.basepath_day).parent)

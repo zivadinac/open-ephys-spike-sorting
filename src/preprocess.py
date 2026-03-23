@@ -11,6 +11,7 @@ from src import positions, events, utils, swrs
 from src.sort_preprocessed import sort
 import pyopenephys as poe
 from tqdm import tqdm
+import glob
 
 
 if __name__ == "__main__":
@@ -23,12 +24,6 @@ if __name__ == "__main__":
     args.add_argument("--skip_dats", type=int, default=0, help="If 1 no *.dat files will appear in output (default is 0).")
     args.add_argument("--sort", type=int, default=0, help="Start sorting data (default is False).")
     args = args.parse_args()
-    #args.recording_path = "/data/jc296_tuning/jc296_020823/jc296_020823"
-    #args.out_path = "/data/jc296_tuning/jc296_020823_preprocess_test/"
-    #args.recording_path = "/data/jc296_tuning/jc296_250723"
-    #args.out_path = "/data/jc296_sorting/"
-    #args.laser_channel = 4
-    #args.sort = False
     if args.basename is None:
         args.basename = basename(args.recording_path)
     print(args.basename)
@@ -47,7 +42,9 @@ if __name__ == "__main__":
 
     # load all recording sessions
     # they must match desen
-    rec_day = poe.File(join(args.recording_path, "Record Node 101"))
+    record_node_folder = glob.glob(join(args.recording_path, "Record Node *"))
+    assert len(record_node_folder) == 1
+    rec_day = poe.File(record_node_folder[0])
     sessions = []
     for ex_i, ex in enumerate(rec_day.experiments):
         sessions.extend(ex.recordings)
